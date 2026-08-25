@@ -221,7 +221,7 @@ class QuizTab extends ItemView{
                 this.addQuizLabelToList(path_.rootName,path_);
             }
         }catch(e){
-            console.log(e);
+            
         }
     }
 
@@ -247,7 +247,7 @@ class QuizTab extends ItemView{
                 });
             }
         }catch(e){
-            console.log(e);
+            
         }
     }
     
@@ -346,7 +346,7 @@ class QuizTab extends ItemView{
                 this.addQuizInsidePath();
             });
         }catch(e){
-            console.log(e);
+            
         }
     }
 
@@ -398,7 +398,7 @@ class QuizTab extends ItemView{
                 });
             }
         }catch(e){
-            console.log(e);
+            
         }
     }
 
@@ -417,7 +417,7 @@ class QuizTab extends ItemView{
                 (this.quizAnswerContainer.lastChild?.firstChild as HTMLButtonElement).innerText = answer;
             }
         }catch(e){
-            console.log(e);
+            
         }
     }
 
@@ -442,7 +442,7 @@ class QuizTab extends ItemView{
             }
             this.addQuestionAnswerEvents();
         }catch(e){
-            console.log(e);
+            
         }
     }
 
@@ -809,7 +809,7 @@ class QuizTab extends ItemView{
                 this.addQuizInsidePath();
             });
         }catch(e){
-            console.log(e);
+            
         }
     }
 
@@ -824,7 +824,7 @@ class QuizTab extends ItemView{
             
             this.addQuizInsidePath();
         }catch(e){
-            console.log(e);
+            
         }
     }
 
@@ -954,7 +954,7 @@ class QuizModal extends Modal{
                 this.addQuizLabelToList(path_.rootName,path_);
             }
         }catch(e){
-            console.log(e);
+            
         }
     }
 
@@ -980,7 +980,7 @@ class QuizModal extends Modal{
                 });
             }
         }catch(e){
-            console.log(e);
+            
         }
     }
     
@@ -1079,7 +1079,7 @@ class QuizModal extends Modal{
                 this.addQuizInsidePath();
             });
         }catch(e){
-            console.log(e);
+            
         }
     }
 
@@ -1131,7 +1131,7 @@ class QuizModal extends Modal{
                 });
             }
         }catch(e){
-            console.log(e);
+            
         }
     }
 
@@ -1150,7 +1150,7 @@ class QuizModal extends Modal{
                 (this.quizAnswerContainer.lastChild?.firstChild as HTMLButtonElement).innerText = answer;
             }
         }catch(e){
-            console.log(e);
+            
         }
     }
 
@@ -1175,7 +1175,7 @@ class QuizModal extends Modal{
             }
             this.addQuestionAnswerEvents();
         }catch(e){
-            console.log(e);
+            
         }
     }
 
@@ -1542,7 +1542,7 @@ class QuizModal extends Modal{
                 this.addQuizInsidePath();
             });
         }catch(e){
-            console.log(e);
+            
         }
     }
 
@@ -1557,11 +1557,11 @@ class QuizModal extends Modal{
             
             this.addQuizInsidePath();
         }catch(e){
-            console.log(e);
+            
         }
     }
 
-    async onClose(){
+    onClose(){
         quizCreatorisOpen = false;
     }
 
@@ -1761,8 +1761,6 @@ function applySettings(app:App){
 
 let quizcSettings!:appSetting;
 
-let isExtendedWindow:boolean = false;
-
 let languageTexts:languageText;
 
 let languageContentJSON:Record<string,languageText>;
@@ -1798,7 +1796,7 @@ export default class QuizCreator extends Plugin {
             }else{
                 this.app.workspace.containerEl.focus();
 
-                setTimeout(() => {
+                window.setTimeout(() => {
                     quizCreatorUI = new QuizModal(this.app);
                     quizCreatorUI.open();
                 }, 50);
@@ -1837,7 +1835,7 @@ export default class QuizCreator extends Plugin {
                             externalTab                :settinJSON.externalTab
                 };
             }catch(e){
-                console.log(e);
+                
                 quizcSettings ={
                             selectQuestionButtonWidth  : this.loadLanguage("en"),
                             nextResetExitButtonWidth   :"200px",
@@ -1884,8 +1882,8 @@ export default class QuizCreator extends Plugin {
                                     "\t\t\"emptyText\":\"Empty\"\n"+
                                 "\t}\n"+
                             "}\n"; 
-        const content = await this.app.vault.adapter.write(normalizedPath,languageText);
-        languageContentJSON =JSON.parse(languageText);
+        await this.app.vault.adapter.write(normalizedPath,languageText);
+        languageContentJSON = JSON.parse(languageText);
     }
 
     async loadLanguageJSON(){
@@ -1902,7 +1900,7 @@ export default class QuizCreator extends Plugin {
                 this.createLanguageJSON();
             }
         }catch(e){
-            console.log(e);
+            
             this.createLanguageJSON();
         }
     }
@@ -1936,7 +1934,7 @@ export default class QuizCreator extends Plugin {
                 return "en";
             }
         }catch(e){
-            console.log(e);
+            
             languageTexts = {
                 nextButton:"Next",
                 exitButton:"Exit",
