@@ -23,7 +23,7 @@
 
 .quizc-sq-button{
     position: relative;
-    width: var( --quizc-selectQ-button-width) !important;
+    width: var( --quizc-selectQ-button-width);
     align-items: flex-start;
     overflow-y: scroll;
     white-space: normal;
@@ -45,8 +45,8 @@
 }
 
 #quizc-sq-back-button{
-    width: 20px !important;
-    height: fit-content !important;
+    width: 20px;
+    height: fit-content;
     white-space: normal;
     overflow-wrap: anywhere;
     margin-left: auto;
@@ -57,14 +57,14 @@
     position: absolute;
     left: 10px;
     height: 100%;
-    color: var(--quizc-correct-color) !important;
+    color: var(--quizc-correct-color);
 }
 
 #quizc-wrong-answer{
     position: absolute;
     right: 10px;
     height: 100%;
-    color: var(--quizc-wrong-color) !important;
+    color: var(--quizc-wrong-color);
 }
 
 #quizc-quiz-container{
@@ -73,7 +73,7 @@
 }
 
 #quizc-quiz-question{
-    width: var(--quizc-quiz-answer-with) !important;
+    width: var(--quizc-quiz-answer-with);
     height: fit-content;
     white-space: normal;
     text-align: center;
@@ -81,7 +81,7 @@
 }
 
 .quizc-next-reset-button{
-    width: var(--quizc-next-reset-exit-button-width) !important;
+    width: var(--quizc-next-reset-exit-button-width);
 }
 
 .quizc-next-reset-container{
@@ -91,7 +91,7 @@
 }
 
 .quizc-answer-button{
-    width: var(--quizc-quiz-answer-with) !important;
+    width: var(--quizc-quiz-answer-with);
     height: fit-content;
     text-align: center;
     overflow-wrap: anywhere;

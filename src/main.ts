@@ -1,37 +1,20 @@
 import {
-	Editor,
-	MarkdownView,
-	MarkdownFileInfo,
 	Modal,
-	Notice,
 	Plugin,
     addIcon,
-    setIcon,
-    WorkspaceWindow,
-    TFile,
-    ItemView, 
-    CacheItem,
-    CachedMetadata,
-    MetadataCache,
+    ItemView,
     WorkspaceLeaf,
     getAllTags,
     App,
-    DropdownComponent,
-    SettingTab,
     PluginSettingTab,
     IconName,
     getLanguage,
     normalizePath
 } from 'obsidian';
-import {
-	DEFAULT_SETTINGS,
-	MyPluginSettings,
-	SampleSettingTab,
-} from './settings';
 
 
 const TAB_NAME = "quiz-tab";
-let quizCreatorisOpen: Boolean = false;
+let quizCreatorisOpen: boolean = false;
 
 class quizcPath{
     rootName:string;
@@ -67,11 +50,11 @@ class answerPackage{
 }
 
 class answer{
-    isCorrect:Boolean;
+    isCorrect:boolean;
     answerText:string;
     
 
-    constructor(answerText:string,isCorrect:Boolean){
+    constructor(answerText:string,isCorrect:boolean){
         this.isCorrect = isCorrect;
         this.answerText = answerText;
     }
@@ -150,7 +133,7 @@ class QuizTab extends ItemView{
     locatePaths(pathNames:string[]){
         pathNames.shift();
         let currentPath:quizcPath = this.rootPath;
-        let notFinded: Boolean = false;
+        let notFinded: boolean = false;
         for(const pathName of pathNames){
             if(notFinded == false){
                 const temp = this.searchLocation(pathName,currentPath);
@@ -192,17 +175,18 @@ class QuizTab extends ItemView{
     addQuizLabelToList(pathName:string,path_?:quizcPath){
         const quizId = "quizc-sq-b" + this.quizListButtonIds.toString();
         this.quizListButtonIds++;
-        let htmlText = "<div class='quizc-sq-button-div'><button class='quizc-sq-button' id='??'>??</button>##</div>".replace("??",quizId)
-                                                                                                                    .replace("??",pathName);
-        if(path_!= undefined && path_ != null &&path_.underPaths.length <= 0){
-            htmlText = htmlText.replace("##","");
-        }else{
-            htmlText = htmlText.replace("##","<p class='quizc-sq-button-expand'>⌄</p>");
+
+        this.quizListDiv.insertAdjacentHTML('beforeend',"<div class='quizc-sq-button-div'><button class='quizc-sq-button'></button></div>");
+        const addedQuizLabelDiv = this.quizListDiv.lastChild;
+        const addedQuizLabelButton = addedQuizLabelDiv!.firstChild as HTMLButtonElement;
+        addedQuizLabelButton.id = quizId;
+        addedQuizLabelButton.innerText = pathName;
+        if(path_!= undefined && path_ != null && path_.underPaths.length > 0){
+            const dropdownText = addedQuizLabelDiv?.createEl('p',{text:"⌄"});
+            dropdownText!.classList.add("quizc-sq-button-expand");
         }
-        this.quizListDiv.insertAdjacentHTML('beforeend',htmlText);
-        const selectQuizB = this.quizListDiv.querySelector<HTMLElement>("#"+quizId);
-        if(selectQuizB){
-            selectQuizB.addEventListener("click",async (event)=>{
+        if(addedQuizLabelButton){
+            addedQuizLabelButton.addEventListener("click",async (event)=>{
                 if(!event) return;
                 const currentTarget = (event.currentTarget as HTMLElement).id.replace("quizc-sq-b","");
                 const currentPath = this.activeQuizListPath.underPaths[Number(currentTarget)];
@@ -303,7 +287,7 @@ class QuizTab extends ItemView{
     quizQuestionContainer!:HTMLElement | null;
     quizCorrectLabel!:HTMLElement | null;
     quizWrongLabel!:HTMLElement | null;
-    currentAnswerStatus!:Boolean | null;
+    currentAnswerStatus!:boolean | null;
     currentQuizName!:string;
 
     totalCorrectAnswer!:number;
@@ -419,16 +403,19 @@ class QuizTab extends ItemView{
     }
 
     //Add answer text into UI.
-    addAnswer(answer:string,isCorrect:Boolean){
+    addAnswer(answer:string,isCorrect:boolean){
         try{
             if(!this.quizAnswerContainer || !answer) return;
 
-            if(isCorrect)
+            if(isCorrect){
                 this.quizAnswerContainer.insertAdjacentHTML('beforeend',"<div style='display:flex; justify-content:center; margin-top:10px;'>"+
-                                                                        "<button class='quizc-correct quizc-answer-button'>??</button></div>".replace("??",answer));
-            else
+                                                                        "<button class='quizc-correct quizc-answer-button'></button></div>");
+                (this.quizAnswerContainer.lastChild?.firstChild as HTMLButtonElement).innerText = answer;
+            }else{
                 this.quizAnswerContainer.insertAdjacentHTML('beforeend',"<div style='display:flex; justify-content:center; margin-top:10px;'>"+
-                                                                        "<button class='quizc-wrong quizc-answer-button'>??</button></div>".replace("??",answer));
+                                                                        "<button class='quizc-wrong quizc-answer-button'></button></div>");
+                (this.quizAnswerContainer.lastChild?.firstChild as HTMLButtonElement).innerText = answer;
+            }
         }catch(e){
             console.log(e);
         }
@@ -500,7 +487,17 @@ class QuizTab extends ItemView{
                 }
 
                 if(wrongAnswerPackage != null){
-                    newAnswerList = tmpArray.concat(wrongAnswerPackage.answers);
+                    for(const wAnswer of wrongAnswerPackage.answers){
+                        let isMatch:boolean = false;
+                        for(const cAnswer of selectedCorrectAnswers){
+                            if(wAnswer.answerText == cAnswer.answerText){
+                                isMatch = true;
+                                break;
+                            }
+                        }
+                        if(!isMatch)
+                            newAnswerList.push(wAnswer);
+                   }
                 }else{
                     newAnswerList = tmpArray;
                 }
@@ -552,7 +549,7 @@ class QuizTab extends ItemView{
         let questionText:string = "";
         let answers:answer[] = [];
 
-        let findQuestion:Boolean = false;
+        let findQuestion:boolean = false;
         let currentAnswer:string = "";
         let correctAnswer:string = "";
         
@@ -560,7 +557,7 @@ class QuizTab extends ItemView{
         let maxSpaceArea:number = 50;
 
         this.answerPackages = [];
-        let isFindAnswerPackages:Boolean = false;
+        let isFindAnswerPackages:boolean = false;
         let currentAnswerForPackage:string = "";
         let currentPackageName:string = "";
         let answersForPackage:answer[] = [];
@@ -668,9 +665,9 @@ class QuizTab extends ItemView{
                     if(line.match(new RegExp("\\?"))){
                         if(currentAnswerForPackage != ""){
                             answersForPackage.push(new answer(currentAnswerForPackage,false));
-                            currentAnswerForPackage = (line.replace("?","")+" \n ");
+                            currentAnswerForPackage = line.replace("?","");
                         }else{
-                            currentAnswerForPackage = (line.replace("?","")+" \n ");
+                            currentAnswerForPackage = line.replace("?","");
                         }
                     }else if(line != ""){
                         currentAnswerForPackage += (line+" \n ");
@@ -869,7 +866,7 @@ class QuizModal extends Modal{
     locatePaths(pathNames:string[]){
         pathNames.shift();
         let currentPath:quizcPath = this.rootPath;
-        let notFinded: Boolean = false;
+        let notFinded: boolean = false;
         for(const pathName of pathNames){
             if(notFinded == false){
                 const temp = this.searchLocation(pathName,currentPath);
@@ -911,17 +908,18 @@ class QuizModal extends Modal{
     addQuizLabelToList(pathName:string,path_?:quizcPath){
         const quizId = "quizc-sq-b" + this.quizListButtonIds.toString();
         this.quizListButtonIds++;
-        let htmlText = "<div class='quizc-sq-button-div'><button class='quizc-sq-button' id='??'>??</button>##</div>".replace("??",quizId)
-                                                                                                                    .replace("??",pathName);
-        if(path_!= undefined && path_ != null &&path_.underPaths.length <= 0){
-            htmlText = htmlText.replace("##","");
-        }else{
-            htmlText = htmlText.replace("##","<p class='quizc-sq-button-expand'>⌄</p>");
+
+        this.quizListDiv.insertAdjacentHTML('beforeend',"<div class='quizc-sq-button-div'><button class='quizc-sq-button'></button></div>");
+        const addedQuizLabelDiv = this.quizListDiv.lastChild;
+        const addedQuizLabelButton = addedQuizLabelDiv!.firstChild as HTMLButtonElement;
+        addedQuizLabelButton.id = quizId;
+        addedQuizLabelButton.innerText = pathName;
+        if(path_!= undefined && path_ != null && path_.underPaths.length > 0){
+            const dropdownText = addedQuizLabelDiv?.createEl('p',{text:"⌄"});
+            dropdownText!.classList.add("quizc-sq-button-expand");
         }
-        this.quizListDiv.insertAdjacentHTML('beforeend',htmlText);
-        const selectQuizB = this.quizListDiv.querySelector<HTMLElement>("#"+quizId);
-        if(selectQuizB){
-            selectQuizB.addEventListener("click",async (event)=>{
+        if(addedQuizLabelButton){
+            addedQuizLabelButton.addEventListener("click",async (event)=>{
                 if(!event) return;
                 const currentTarget = (event.currentTarget as HTMLElement).id.replace("quizc-sq-b","");
                 const currentPath = this.activeQuizListPath.underPaths[Number(currentTarget)];
@@ -1022,7 +1020,7 @@ class QuizModal extends Modal{
     quizQuestionContainer!:HTMLElement | null;
     quizCorrectLabel!:HTMLElement | null;
     quizWrongLabel!:HTMLElement | null;
-    currentAnswerStatus!:Boolean | null;
+    currentAnswerStatus!:boolean | null;
     currentQuizName!:string;
 
     totalCorrectAnswer!:number;
@@ -1138,16 +1136,19 @@ class QuizModal extends Modal{
     }
 
     //Add answer text into UI.
-    addAnswer(answer:string,isCorrect:Boolean){
+    addAnswer(answer:string,isCorrect:boolean){
         try{
             if(!this.quizAnswerContainer || !answer) return;
 
-            if(isCorrect)
+            if(isCorrect){
                 this.quizAnswerContainer.insertAdjacentHTML('beforeend',"<div style='display:flex; justify-content:center; margin-top:10px;'>"+
-                                                                        "<button class='quizc-correct quizc-answer-button'>??</button></div>".replace("??",answer));
-            else
+                                                                        "<button class='quizc-correct quizc-answer-button'></button></div>");
+                (this.quizAnswerContainer.lastChild?.firstChild as HTMLButtonElement).innerText = answer;
+            }else{
                 this.quizAnswerContainer.insertAdjacentHTML('beforeend',"<div style='display:flex; justify-content:center; margin-top:10px;'>"+
-                                                                        "<button class='quizc-wrong quizc-answer-button'>??</button></div>".replace("??",answer));
+                                                                        "<button class='quizc-wrong quizc-answer-button'></button></div>");
+                (this.quizAnswerContainer.lastChild?.firstChild as HTMLButtonElement).innerText = answer;
+            }
         }catch(e){
             console.log(e);
         }
@@ -1219,7 +1220,17 @@ class QuizModal extends Modal{
                 }
 
                 if(wrongAnswerPackage != null){
-                    newAnswerList = tmpArray.concat(wrongAnswerPackage.answers);
+                    for(const wAnswer of wrongAnswerPackage.answers){
+                        let isMatch:boolean = false;
+                        for(const cAnswer of selectedCorrectAnswers){
+                            if(wAnswer.answerText == cAnswer.answerText){
+                                isMatch = true;
+                                break;
+                            }
+                        }
+                        if(!isMatch)
+                            newAnswerList.push(wAnswer);
+                    }
                 }else{
                     newAnswerList = tmpArray;
                 }
@@ -1271,7 +1282,7 @@ class QuizModal extends Modal{
         let questionText:string = "";
         let answers:answer[] = [];
 
-        let findQuestion:Boolean = false;
+        let findQuestion:boolean = false;
         let currentAnswer:string = "";
         let correctAnswer:string = "";
         
@@ -1279,7 +1290,7 @@ class QuizModal extends Modal{
         let maxSpaceArea:number = 50;
 
         this.answerPackages = [];
-        let isFindAnswerPackages:Boolean = false;
+        let isFindAnswerPackages:boolean = false;
         let currentAnswerForPackage:string = "";
         let currentPackageName:string = "";
         let answersForPackage:answer[] = [];
@@ -1387,9 +1398,9 @@ class QuizModal extends Modal{
                     if(line.match(new RegExp("\\?"))){
                         if(currentAnswerForPackage != ""){
                             answersForPackage.push(new answer(currentAnswerForPackage,false));
-                            currentAnswerForPackage = (line.replace("?","")+" \n ");
+                            currentAnswerForPackage = line.replace("?","");
                         }else{
-                            currentAnswerForPackage = (line.replace("?","")+" \n ");
+                            currentAnswerForPackage = line.replace("?","");
                         }
                     }else if(line != ""){
                         currentAnswerForPackage += (line+" \n ");
@@ -1591,14 +1602,14 @@ class appSettingTab extends PluginSettingTab{
         languageDropdownContainer.insertAdjacentHTML('beforeend',"<select class='dropdown' style='--dropdown-fitted-width: 175px;'>"+
                                                                  "<option value='tr'>Türkçe</option>"+
                                                                  "<option value='en'>English</option>"+
-                                                                 "</select>".replace("??",quizcSettings.language));
+                                                                 "</select>");
         this.languageDropdownInput = languageDropdownContainer.lastChild as HTMLInputElement;
         this.languageDropdownInput.value = this.plugin.settings.language;
 
         const openExternalTabContainer = this.containerEl.createDiv();
         openExternalTabContainer.style = "display:flex; align-items:center; justify-content:left; margin-top:10px;";
         openExternalTabContainer.createSpan({text:"Open External Tab"}).style = "margin-right:5px; width:175px;";
-        openExternalTabContainer.insertAdjacentHTML('beforeend',"<label class='checkbox-container'><input type='checkbox'></label>".replace("??",quizcSettings.language));
+        openExternalTabContainer.insertAdjacentHTML('beforeend',"<label class='checkbox-container'><input type='checkbox'></label>");
         this.openExternalTabLabel = openExternalTabContainer.lastChild as HTMLLabelElement;
         this.openExternalTabInput = this.openExternalTabLabel.lastChild as HTMLInputElement;
         this.openExternalTabInput.value = quizcSettings.externalTab;
@@ -1623,43 +1634,50 @@ class appSettingTab extends PluginSettingTab{
         const selectQuestionButtonWidthConainer = this.containerEl.createDiv();
         selectQuestionButtonWidthConainer.style = "display:flex; align-items:center; justify-content:left; margin-top:10px;";
         selectQuestionButtonWidthConainer.createSpan({text:"Question Button Width"}).style = "margin-right:5px; width:175px;";
-        selectQuestionButtonWidthConainer.insertAdjacentHTML('beforeend',"<input type='text' value='??'>".replace("??",quizcSettings.selectQuestionButtonWidth));
+        selectQuestionButtonWidthConainer.insertAdjacentHTML('beforeend',"<input type='text'>");
+        (selectQuestionButtonWidthConainer.lastChild as HTMLInputElement).value = quizcSettings.selectQuestionButtonWidth;
         this.selectQuestionButtonWidthInput = selectQuestionButtonWidthConainer.lastChild as HTMLInputElement;
 
         const generalNavigationButtonContainer = this.containerEl.createDiv();
         generalNavigationButtonContainer.style = "display:flex; align-items:center; justify-content:left; margin-top:10px;";
         generalNavigationButtonContainer.createSpan({text:"Navigation Buttons Width"}).style = "margin-right:5px; width:175px;";
-        generalNavigationButtonContainer.insertAdjacentHTML('beforeend',"<input type='text' value='??'>".replace("??",quizcSettings.nextResetExitButtonWidth));
+        generalNavigationButtonContainer.insertAdjacentHTML('beforeend',"<input type='text'>");
+        (generalNavigationButtonContainer.lastChild as HTMLInputElement).value = quizcSettings.nextResetExitButtonWidth;
         this.generalNavigationButtonWidth = generalNavigationButtonContainer.lastChild as HTMLInputElement;
 
         const selectQuestionButtonMarginContainer = this.containerEl.createDiv();
         selectQuestionButtonMarginContainer.style = "display:flex; align-items:center; justify-content:left; margin-top:10px;";
         selectQuestionButtonMarginContainer.createSpan({text:"Select Question Button Margin"}).style = "margin-right:5px; width:175px;";
-        selectQuestionButtonMarginContainer.insertAdjacentHTML('beforeend',"<input type='text' value='??'>".replace("??",quizcSettings.selectQuestionElementMargin));
+        selectQuestionButtonMarginContainer.insertAdjacentHTML('beforeend',"<input type='text'>");
+        (selectQuestionButtonMarginContainer.lastChild as HTMLInputElement).value = quizcSettings.selectQuestionElementMargin;
         this.selectQuestionButtonMarginInput = selectQuestionButtonMarginContainer.lastChild as HTMLInputElement;
 
         const quizMenuElementsMarginContainer = this.containerEl.createDiv();
         quizMenuElementsMarginContainer.style = "display:flex; align-items:center; justify-content:left; margin-top:10px;";
         quizMenuElementsMarginContainer.createSpan({text:"Quiz Element Margin"}).style = "margin-right:5px; width:175px;";
-        quizMenuElementsMarginContainer.insertAdjacentHTML('beforeend',"<input type='text' value='??'>".replace("??",quizcSettings.quizMenuElementMargin));
+        quizMenuElementsMarginContainer.insertAdjacentHTML('beforeend',"<input type='text'>");
+        (quizMenuElementsMarginContainer.lastChild as HTMLInputElement).value = quizcSettings.quizMenuElementMargin;
         this.quizMenuElementsMarginInput = quizMenuElementsMarginContainer.lastChild as HTMLInputElement;
         
         const quizMenuAnswerWidthContainer = this.containerEl.createDiv();
         quizMenuAnswerWidthContainer.style = "display:flex; align-items:center; justify-content:left; margin-top:10px;";
         quizMenuAnswerWidthContainer.createSpan({text:"Quiz Element Width"}).style = "margin-right:5px; width:175px;";
-        quizMenuAnswerWidthContainer.insertAdjacentHTML('beforeend',"<input type='text' value='??'>".replace("??",quizcSettings.quizMenuElementWidth));
+        quizMenuAnswerWidthContainer.insertAdjacentHTML('beforeend',"<input type='text'>");
+        (quizMenuAnswerWidthContainer.lastChild as HTMLInputElement).value = quizcSettings.quizMenuElementWidth;
         this.quizMenuAnswerWidthInput = quizMenuAnswerWidthContainer.lastChild as HTMLInputElement;
 
         const pickCorrectColorContainer = this.containerEl.createDiv();
         pickCorrectColorContainer.style = "display:flex; align-items:center; justify-content:left; margin-top:10px;";
         pickCorrectColorContainer.createSpan({text:"Correct Color"}).style = "margin-right:5px; width:92px;";
-        pickCorrectColorContainer.insertAdjacentHTML('beforeend',"<input type='color' value='??'>".replace("??",quizcSettings.correctColor));
+        pickCorrectColorContainer.insertAdjacentHTML('beforeend',"<input type='color'>");
+        (pickCorrectColorContainer.lastChild as HTMLInputElement).value = quizcSettings.correctColor;
         this.correctColorInput = pickCorrectColorContainer.lastChild as HTMLInputElement;
 
         const pickWrongColorContainer = this.containerEl.createDiv();
         pickWrongColorContainer.style = "display:flex; align-items:center; justify-content:left; margin-top:10px;";
         pickWrongColorContainer.createSpan({text:"Wrong Color"}).style = "margin-right:5px; width:92px;";
-        pickWrongColorContainer.insertAdjacentHTML('beforeend',"<input type='color' value='??'>".replace("??",quizcSettings.wrongColor));
+        pickWrongColorContainer.insertAdjacentHTML('beforeend',"<input type='color'>");
+        (pickWrongColorContainer.lastChild as HTMLInputElement).value = quizcSettings.wrongColor;
         this.wrongColorInput = pickWrongColorContainer.lastChild as HTMLInputElement;
 
         const saveButtonContainer = this.containerEl.createDiv();
@@ -1743,7 +1761,7 @@ function applySettings(app:App){
 
 let quizcSettings!:appSetting;
 
-let isExtendedWindow:Boolean = false;
+let isExtendedWindow:boolean = false;
 
 let languageTexts:languageText;
 
@@ -1840,6 +1858,36 @@ export default class QuizCreator extends Plugin {
 		this.addSettingTab(new appSettingTab(this.app,this));
 	}
 
+    async createLanguageJSON(){
+        const pluginDir = this.manifest.dir;
+        const normalizedPath = normalizePath(pluginDir+"/languages.json");
+        const languageText = "{\n"+
+                                "\t\"tr\":{\n"+
+                                    "\t\t\"nextButton\":\"Sonraki\",\n"+
+                                    "\t\t\"exitButton\":\"Çık\",\n"+
+                                    "\t\t\"reloadButton\":\"Tekrarla\",\n"+
+                                    "\t\t\"selectQuizText\":\"Quiz Seç\",\n"+
+                                    "\t\t\"resulText\":\"Sonuç\",\n"+
+                                    "\t\t\"correctText\":\"Doğru\",\n"+
+                                    "\t\t\"wrongText\":\"Yanlış\",\n"+
+                                    "\t\t\"emptyText\":\"Boş\"\n"+
+                                
+                                "\t},\n"+
+                                "\t\"en\":{\n"+
+                                    "\t\t\"nextButton\":\"Next\",\n"+
+                                    "\t\t\"exitButton\":\"Exit\",\n"+
+                                    "\t\t\"reloadButton\":\"Reload\",\n"+
+                                    "\t\t\"selectQuizText\":\"Select Quiz\",\n"+
+                                    "\t\t\"resulText\":\"Result\",\n"+
+                                    "\t\t\"correctText\":\"Correct\",\n"+
+                                    "\t\t\"wrongText\":\"Wrong\",\n"+
+                                    "\t\t\"emptyText\":\"Empty\"\n"+
+                                "\t}\n"+
+                            "}\n"; 
+        const content = await this.app.vault.adapter.write(normalizedPath,languageText);
+        languageContentJSON =JSON.parse(languageText);
+    }
+
     async loadLanguageJSON(){
         try{
             const pluginDir = this.manifest.dir;
@@ -1851,12 +1899,11 @@ export default class QuizCreator extends Plugin {
                 const content = await this.app.vault.adapter.read(normalizedPath);
                 languageContentJSON = JSON.parse(content);
             }else{
-                languageContentJSON = JSON.parse("{}");       
-                     
+                this.createLanguageJSON();
             }
         }catch(e){
             console.log(e);
-            languageContentJSON = JSON.parse("{}");
+            this.createLanguageJSON();
         }
     }
 
