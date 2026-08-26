@@ -2,7 +2,7 @@
 
 You can create a multiple choice quiz in Obsidian.
 
-<img width="400" height="312" alt="ezgif-351b6d4831e226ce" src="https://github.com/user-attachments/assets/ec6d195a-d018-47d6-92c2-12e165451d16" />
+<img width="400" height="312" alt="ezgif-351b6d4831e226ce" src="https://raw.githubusercontent.com/TahaKCengiz/quiz-creator/refs/heads/main/Plugin%20Gif.gif" />
 
 ## HOW TO USE
 
